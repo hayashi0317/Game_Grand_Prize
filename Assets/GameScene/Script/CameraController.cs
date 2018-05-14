@@ -51,6 +51,9 @@ public class CameraController : MonoBehaviour
 	// タイマーカメラ
 	GameObject timer_camera_;
 
+	// ゲームパッド
+	GamePad game_pad_;
+
 
 	// 衝突用
 	public GameObject obj1;
@@ -81,6 +84,7 @@ public class CameraController : MonoBehaviour
 		// 状態の保存
 		SeveTransform();
 
+		game_pad_       = GameObject.Find("GamePad").GetComponent<GamePad>();
 		item_generator_ = GameObject.Find("ItemGenerator");
 		game_director_  = GameObject.Find("GameDirector");
 	}
@@ -156,7 +160,7 @@ public class CameraController : MonoBehaviour
 		Rotation();
 
 		// 時間調整へ移行
-		if (Input.GetKeyDown(KeyCode.Space)|| Input.GetButtonDown("A"))//Input.GetAxisRaw("R2") < -TRIGGER_SENSITIVITY)
+		if (game_pad_.R2Trigger())
 		{
 			ChangeTimerCamera_TimeAdjustment();
 		}
@@ -176,7 +180,7 @@ public class CameraController : MonoBehaviour
 		SetTimer();
 
 		// メインカメラへ移行
-		if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("A"))//Input.GetAxisRaw("R2") < -TRIGGER_SENSITIVITY)
+		if (game_pad_.R2Trigger())
 		{
 			ChangeMainCamera();
 		}
@@ -193,26 +197,26 @@ public class CameraController : MonoBehaviour
 	void Translation()
 	{
 		Vector3 temp_vector = new Vector3(0.0f, 0.0f, 0.0f);
-
-		if (Input.GetKey(KeyCode.A) || (Input.GetAxis("LStick_X") < -STICK_SENSITIVITY))
+		
+		if (game_pad_.LstickHold(GamePad.StickFlag.LEFT))
 		{
 			temp_vector.x = -1.0f;
 			//temp_vector = new Vector3(-1.0f, 0.0f, 0.0f);
 		}
 
-		if (Input.GetKey(KeyCode.D) || (Input.GetAxis("LStick_X") > STICK_SENSITIVITY))
+		if (game_pad_.LstickHold(GamePad.StickFlag.RIGHT))
 		{
 			temp_vector.x = 1.0f;
 			//temp_vector = new Vector3(1.0f, 0.0f, 0.0f);
 		}
 
-		if (Input.GetKey(KeyCode.W) || (Input.GetAxis("LStick_Z") < -STICK_SENSITIVITY))
+		if (game_pad_.LstickHold(GamePad.StickFlag.UP))
 		{
 			temp_vector.z = 1.0f;
 			//temp_vector = new Vector3(0.0f, 0.0f, 1.0f);
 		}
 
-		if (Input.GetKey(KeyCode.S) || (Input.GetAxis("LStick_Z") > STICK_SENSITIVITY))
+		if (game_pad_.LstickHold(GamePad.StickFlag.DOWN))
 		{
 			temp_vector.z = -1.0f;
 			//temp_vector = new Vector3(0.0f, 0.0f, -1.0f);
@@ -220,10 +224,8 @@ public class CameraController : MonoBehaviour
 
 		// 速度ベクトルの調整
 		temp_vector.Normalize();
-		float proportion = (Mathf.Abs(Input.GetAxis("LStick_Z")) > Mathf.Abs(Input.GetAxis("LStick_X"))? 
-							Mathf.Abs(Input.GetAxis("LStick_Z")) : Mathf.Abs(Input.GetAxis("LStick_X")));
-
-		//proportion = 1.0f;	// キーボードを使う場合のみ使用
+		float proportion = (Mathf.Abs(Input.GetAxis("LStick_Y")) > Mathf.Abs(Input.GetAxis("LStick_X"))? 
+							Mathf.Abs(Input.GetAxis("LStick_Y")) : Mathf.Abs(Input.GetAxis("LStick_X")));
 
 		temp_vector = temp_vector * TRANSLATION_SPEED * proportion ;
 
@@ -245,27 +247,27 @@ public class CameraController : MonoBehaviour
 	{
 		// 速度の調整
 		float temp_speed = ROTATE_SPEED * 
-						   (Mathf.Abs(Input.GetAxis("RStick_Z")) > Mathf.Abs(Input.GetAxis("RStick_X"))? 
-							Mathf.Abs(Input.GetAxis("RStick_Z")) : Mathf.Abs(Input.GetAxis("RStick_X")));
+						   (Mathf.Abs(Input.GetAxis("RStick_Y")) > Mathf.Abs(Input.GetAxis("RStick_X"))? 
+							Mathf.Abs(Input.GetAxis("RStick_Y")) : Mathf.Abs(Input.GetAxis("RStick_X")));
 		
 		//temp_speed = ROTATE_SPEED;	// キーボードを使う場合のみ使用
 
-		if (Input.GetKey(KeyCode.Q) || (Input.GetAxis("RStick_X") < -STICK_SENSITIVITY))
+		if (game_pad_.RstickHold(GamePad.StickFlag.LEFT))
 		{
 			transform.Rotate(0.0f, -temp_speed, 0.0f, Space.World);
 		}
 
-		if (Input.GetKey(KeyCode.E) || (Input.GetAxis("RStick_X") > STICK_SENSITIVITY))
+		if (game_pad_.RstickHold(GamePad.StickFlag.RIGHT))
 		{
 			transform.Rotate(0.0f, temp_speed, 0.0f, Space.World);
 		}
 
-		if (Input.GetKey(KeyCode.R) || (Input.GetAxis("RStick_Z") < -STICK_SENSITIVITY))
+		if (game_pad_.RstickHold(GamePad.StickFlag.UP))
 		{
 			transform.Rotate(-temp_speed, 0.0f, 0.0f);
 		}
 
-		if (Input.GetKey(KeyCode.F) || (Input.GetAxis("RStick_Z") > STICK_SENSITIVITY))
+		if (game_pad_.RstickHold(GamePad.StickFlag.DOWN))
 		{
 			transform.Rotate(temp_speed, 0.0f, 0.0f);
 		}
@@ -293,11 +295,11 @@ public class CameraController : MonoBehaviour
 			hit.collider.gameObject.GetComponent<ItemTileController>().is_hit_ = true;
 
 			// アイテム使用
-			if (Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("A"))//Input.GetAxisRaw("R2") < -TRIGGER_SENSITIVITY)
+			if (game_pad_.R2Trigger())
 			{
 				item_generator_.GetComponent<ItemGenerator>().UseItem(hit.collider.gameObject);
 			}
-
+			
 			Debug.Log("name:" + hit.collider.gameObject.name);
 		}
 	}
