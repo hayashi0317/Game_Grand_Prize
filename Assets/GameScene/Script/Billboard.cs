@@ -12,7 +12,7 @@ public class Billboard : MonoBehaviour
 //**********************************************************************
 
 	// メインカメラ
-	GameObject main_camera_;
+	GameObject player_;
 
 
 
@@ -30,7 +30,7 @@ public class Billboard : MonoBehaviour
 
 	void Start()
 	{
-		main_camera_ = GameObject.Find("MainCamera");
+		player_ = GameObject.Find("Player");
 	}
 
 
@@ -43,6 +43,6 @@ public class Billboard : MonoBehaviour
 
 	void Update()
 	{
-		transform.LookAt (transform.position + main_camera_.transform.rotation * Vector3.back, main_camera_.transform.rotation * Vector3.down);
+		transform.LookAt (transform.position + player_.transform.rotation * Vector3.back, player_.transform.rotation * Vector3.down);
 	}
 }

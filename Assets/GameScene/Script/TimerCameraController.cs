@@ -65,7 +65,7 @@ public class TimerCameraController : MonoBehaviour
 	{
 		if (is_shot_)
 		{
-			main_camera_.GetComponent<CameraController>().ChangeShotReverse();
+			main_camera_.GetComponent<Player>().ChangeShotReverse();
 			is_shot_ = false;
 		}
 		
@@ -82,8 +82,9 @@ public class TimerCameraController : MonoBehaviour
 //
 //================================================================================
 	
-	public void Init()
+	public void Init(float timer_count)
 	{
+		timer_count_ = timer_count;
 		game_director_ = GameObject.Find("GameDirector");
 
 		child_object_ = transform.Find("TimerCameraObject").gameObject;
@@ -91,6 +92,8 @@ public class TimerCameraController : MonoBehaviour
 		timer_count_ui_ = transform.Find("TimerCameraObject/Canvas/ObjectTimerCount").gameObject;
 
 		main_camera_ = GameObject.Find("MainCamera");
+
+		UpdataUI();
 	}
 
 //================================================================================
@@ -141,8 +144,8 @@ public class TimerCameraController : MonoBehaviour
 	void Shooting()
 	{
 		Debug.Log("撮影");
-		main_camera_.GetComponent<CameraController>().ChangeShot(transform.position, transform.rotation);
-		main_camera_.GetComponent<CameraController>().Judgment();
+		main_camera_.GetComponent<Player>().ChangeShot(transform.position, transform.rotation);
+		main_camera_.GetComponent<Player>().Judgment();
 
 		ScreenCapture.CaptureScreenshot("Assets/screenshot" + game_director_.GetComponent<GameDirector>().screenShotCount + ".png");
         game_director_.GetComponent<GameDirector>().screenShotCount++;
@@ -168,79 +171,6 @@ public class TimerCameraController : MonoBehaviour
 	}
 
 
-
-//================================================================================
-//
-// [ タイマーカウント増加関数 ]
-//
-//================================================================================
-	
-	public void UpTimerCount()
-	{
-		if (timer_count_ >= MAX_TIMER_COUNT) return;
-		
-		timer_count_ += ADD_TIMER_COUNT;
-
-		if (timer_count_ >= MAX_TIMER_COUNT)
-		{
-			timer_count_ = MAX_TIMER_COUNT;
-		}
-		
-		game_director_.GetComponent<GameDirector>().SetTimerCameraCount(timer_count_);
-		game_director_.GetComponent<GameDirector>().SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
-	}
-
-
-
-//================================================================================
-//
-// [ タイマーカウント減少関数 ]
-//
-//================================================================================
-	
-	public void DownTimerCount()
-	{
-		if (timer_count_ <= 0.0f) return;
-		
-		timer_count_ += -ADD_TIMER_COUNT;
-
-		if (timer_count_ <= 0.0f)
-		{
-			timer_count_ = 0.0f;
-		}
-
-		game_director_.GetComponent<GameDirector>().SetTimerCameraCount(timer_count_);
-		game_director_.GetComponent<GameDirector>().SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
-	}
-
-//================================================================================
-//
-// [ オブジェクトを無効化関数 ]
-//
-//================================================================================
-	
-	public void ObjectOff()
-	{
-		child_object_.SetActive(false);
-	}
-
-
-
-//================================================================================
-//
-// [ オブジェクトを無効化関数 ]
-//
-//================================================================================
-	
-	public void ObjectON(Vector3 position, Quaternion rotation)
-	{
-		child_object_.SetActive(true);
-
-		transform.position = position;
-		transform.rotation = rotation;
-
-		UpdataUI();
-	}
 
 //================================================================================
 //

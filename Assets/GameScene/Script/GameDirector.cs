@@ -6,12 +6,28 @@ using UnityEngine.SceneManagement;
 
 public class GameDirector : MonoBehaviour
 {
+//**********************************************************************
+//
+// 列挙型定義
+//
+//**********************************************************************
+
+	enum State
+	{
+		NONE = -1,
+		COUNT_DOWN,
+		COUNT_UP,
+		MAX
+	}
 
 //**********************************************************************
 //
 // データ
 //
 //**********************************************************************
+
+	// 定数
+	const float MAX_CAMERA_SET_TIME = 30.0f;
 
 	// 画像
 	public Sprite timer_camera_image_;
@@ -27,7 +43,7 @@ public class GameDirector : MonoBehaviour
 	GameObject timer_count_;
 
 	// タイマー
-	float time_ = 30.0f;
+	float time_;
 	GameObject timer_text_;
 
 	// キューブ
@@ -42,6 +58,9 @@ public class GameDirector : MonoBehaviour
     //シーン
     public int time_scene = 0;
     GameObject fade;
+
+	// ステート
+	State state_ = State.COUNT_DOWN;
 
 
 
@@ -80,6 +99,9 @@ public class GameDirector : MonoBehaviour
 
         //シーン
         fade = GameObject.Find("FadeDirector");
+
+		// タイマーの初期化
+		time_ = MAX_CAMERA_SET_TIME;
 	}
 
 
@@ -92,6 +114,19 @@ public class GameDirector : MonoBehaviour
 
 	void Update()
 	{
+		switch (state_)
+		{
+			case State.COUNT_DOWN :
+			{
+				
+				break;
+			}
+			case State.COUNT_UP :
+			{
+				break;
+			}
+		}
+		
 		// カウントダウン
 		CountDown();
 
@@ -145,20 +180,20 @@ public class GameDirector : MonoBehaviour
 //
 //================================================================================
 	
-	public void ChangeItemImage(int select_item_num)
+	public void ChangeItemImage(ItemFactory.ItemNum select_item_num)
 	{
 		Image temp_image = item_ui_.GetComponent<Image>();
 
 		switch(select_item_num)
 		{
-			case ItemGenerator.TIMER_CAMERA :
+			case ItemFactory.ItemNum.TIMER_CAMERA :
 			{
 				
 				temp_image.sprite = timer_camera_image_;
 				break;
 			}
 
-			case ItemGenerator.LAMP :
+			case ItemFactory.ItemNum.LAMP :
 			{
 				temp_image.sprite = lamp_image_;
 				break;
@@ -270,7 +305,7 @@ public class GameDirector : MonoBehaviour
         
         FadeManager fade_start = fade.GetComponent<FadeManager>();
 
-		if (Input.GetButtonDown("B"))
+		if (Input.GetButtonDown("Y"))
 		{
 			time_scene = 5000;
 		}

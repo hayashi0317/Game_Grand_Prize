@@ -11,14 +11,14 @@ public class textJudg : MonoBehaviour {
     void Start () {
         myText = GetComponentInChildren<Text>();
 
-		obj1 = GameObject.Find("MainCamera");
+		obj1 = GameObject.Find("Player");
 	}
 
     // Update is called once per frame
     void Update()
     {
 
-        CameraController J1 = obj1.GetComponent<CameraController>();
+        Player J1 = obj1.GetComponent<Player>();
         bool TextJudg1 = J1.Is_Judg1();
         bool TextJudg2 = J1.Is_Judg2();
 
