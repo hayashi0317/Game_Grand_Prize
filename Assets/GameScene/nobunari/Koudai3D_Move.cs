@@ -13,18 +13,15 @@ public class Koudai3D_Move : MonoBehaviour
     private int bfront = 0;
     private int nCnt = 0;
     public GameObject ball;
-
+    public int GetItem = 0;
     Transform target;
+    Transform OldTatget;
     Vector3 targetPositon;
-
+    GameObject TragetObjectObstacle;//障害ジャッジ用
     // Use this for initialization
     void Start()
     {
-        bhorizon = 1;
-        bfront = 0;
         target = GameObject.Find("judge3").transform;
-        //int rand;
-        //rand = Random.Range();
     }
 
     void Update()
@@ -32,56 +29,47 @@ public class Koudai3D_Move : MonoBehaviour
         //------------------------------------------------------------------------
         //移動方向の判定と移動量
         //------------------------------------------------------------------------
+        
         if (bLockOn == false)
         {
-            switch (bhorizon)
-            {
-                case 1:
-                    transform.position += new Vector3(Time.deltaTime * 5.0f, 0, 0);
-                    break;
-                case 2:
-                    transform.position += new Vector3(Time.deltaTime * -5.0f, 0, 0);
-                    break;
-            }
-            switch (bfront)
-            {
-                case 1:
-                    transform.position += new Vector3(0, 0, Time.deltaTime * 5.0f);
-                    break;
-                case 2:
-                    transform.position += new Vector3(0, 0, Time.deltaTime * -5.0f);
-                    break;
-            }
+            float DifferencePosX = gameObject.transform.position.x - target.transform.position.x;
+            float DifferencePosZ = gameObject.transform.position.z - target.transform.position.z;
+            float MoveX = 0; float MoveZ = 0;
+
+            if (DifferencePosX > 0.5f)
+            { MoveX = Time.deltaTime * -2.0f; }
+            else{MoveX = Time.deltaTime * 2.0f;}
+            
+            
+            if (DifferencePosZ >= 0)
+            { MoveZ = Time.deltaTime * -2.0f;}
+            else{ MoveZ = Time.deltaTime * 2.0f;}
+            transform.position += new Vector3(MoveX, 0, MoveZ);
         }
         //------------------------------------------------------------------------
         //ターゲット追尾中処理
         //------------------------------------------------------------------------
         if (bLockOn == true)
         {
-            float DifferencePosX = gameObject.transform.position.x - ball.transform.position.x;
-            Debug.Log("LockOn ->" + ball.gameObject.name);
+            float DifferencePosX = gameObject.transform.position.x - target.transform.position.x;
             if (DifferencePosX >= 0)
             {
-                fPosX = Time.deltaTime * -2.0f;
+                transform.position += new Vector3(Time.deltaTime * -2.0f, 0, 0);
             }
             else
             {
-                fPosX = Time.deltaTime * 2.0f;
+                transform.position += new Vector3(Time.deltaTime * 2.0f, 0, 0);
             }
-            float DifferencePosZ = gameObject.transform.position.z - ball.transform.position.z;
+            float DifferencePosZ = gameObject.transform.position.z - target.transform.position.z;
             if (DifferencePosZ >= 0)
             {
-                fPosZ = Time.deltaTime * -2.0f;
+                transform.position += new Vector3(0, 0, Time.deltaTime * -2.0f);
             }
             else
             {
-                fPosZ = Time.deltaTime * 2.0f;
+                transform.position += new Vector3(0, 0, Time.deltaTime * 2.0f);
             }
-            transform.Translate(fPosX, fPosY, fPosZ);
         }
-
-
-
         //------------------------------------------------------------------------------------
         //Quaternion.Slerpと併用して、指定したオブジェクトの方向になめらかに回転する
         //------------------------------------------------------------------------------------
@@ -100,6 +88,12 @@ public class Koudai3D_Move : MonoBehaviour
         //relativePos.y = 0; //上下方向の回転はしないように制御
         //transform.rotation = Quaternion.LookRotation(relativePos);
         //bRotation = false;
+
+        if(GetItem>=2)
+        {
+            Destroy(gameObject);
+            //Application.LoadLevel();
+        }
     }
     //-----------------------------------------------------------------------------------------
     //                   GetCollision
@@ -119,17 +113,18 @@ public class Koudai3D_Move : MonoBehaviour
     // 衝突中を検出
     void OnCollisionStay(Collision other)
     {
-
         if (bLockOn == true)
         {
-            if (other.gameObject.tag == "ball")
+            if (other.gameObject.tag == "kanna")
             {
                 nCnt += 1;
                 if (nCnt >= 150)
                 {
                     Destroy(other.gameObject);
                     nCnt = 0;
+                    target = OldTatget;
                     bLockOn = false;
+                    GetItem++;
                 }
             }
         }
@@ -141,34 +136,53 @@ public class Koudai3D_Move : MonoBehaviour
     //トリガーに接触した瞬間
     void OnTriggerEnter(Collider other)
     {
-        if (bLockOn == false)
-        {
-            if (other.gameObject.tag == "ball")
+        if(bLockOn==false)
+        { 
+            if (other.gameObject.name == "kanna")
             {
                 ball = other.gameObject;
                 bLockOn = true;
+                OldTatget = target;
+                target = GameObject.Find("kanna").transform;
+            }
+            if (other.gameObject.name == "kanna2")
+            {
+                ball = other.gameObject;
+                bLockOn = true;
+                OldTatget = target;
+                target = GameObject.Find("kanna2").transform;
+            }
+            if (other.gameObject.name == "kanna3")
+            {
+                ball = other.gameObject;
+                bLockOn = true;
+                OldTatget = target;
+                target = GameObject.Find("kanna3").transform;
+            }
+            if (other.gameObject.name == "kanna4")
+            {
+                ball = other.gameObject;
+                bLockOn = true;
+                OldTatget = target;
+                target = GameObject.Find("kanna4").transform;
             }
         }
-
         if (other.gameObject.name == "judge")
         {
             int rand;
             rand = Random.Range(0, 2 + 1); //int : 第二引数は含まない->+1で調整
             if (rand == 0)
             {
-
+                target = GameObject.Find("judge2").transform;
             }
             if (rand == 1)
             {
-
                 target = GameObject.Find("judge3").transform;
-                bhorizon = 1; bfront = 0;
             }
             if (rand == 2)
             {
 
                 target = GameObject.Find("judge8").transform;
-                bhorizon = 0; bfront = 1;
             }
         }
         if (other.gameObject.name == "judge2")
@@ -178,14 +192,10 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge").transform;
-                bfront = 0;
-                bhorizon = 1;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge4").transform;
-                bfront = 1;
-                bhorizon = 0;
             }
         }
         if (other.gameObject.name == "judge3")
@@ -195,14 +205,10 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge").transform;
-                bfront = 0;
-                bhorizon = 2;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge6").transform;
-                bfront = 1;
-                bhorizon = 0;
             }
         }
         if (other.gameObject.name == "judge4")
@@ -212,20 +218,14 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge8").transform;
-                bfront = 0;
-                bhorizon = 1;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge5").transform;
-                bfront = 1;
-                bhorizon = 0;
             }
             if (rand == 2)
             {
                 target = GameObject.Find("judge2").transform;
-                bfront = 2;
-                bhorizon = 0;
             }
         }
         if (other.gameObject.name == "judge5")
@@ -235,14 +235,10 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge4").transform;
-                bfront = 2;
-                bhorizon = 0;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge9").transform;
-                bfront = 0;
-                bhorizon = 1;
             }
         }
         if (other.gameObject.name == "judge6")
@@ -252,20 +248,14 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge8").transform;
-                bfront = 0;
-                bhorizon = 2;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge7").transform;
-                bfront = 1;
-                bhorizon = 0;
             }
             if (rand == 2)
             {
                 target = GameObject.Find("judge3").transform;
-                bfront = 2;
-                bhorizon = 0;
             }
         }
         if (other.gameObject.name == "judge7")
@@ -275,14 +265,10 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge6").transform;
-                bfront = 2;
-                bhorizon = 0;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge9").transform;
-                bfront = 0;
-                bhorizon = 2;
             }
         }
         if (other.gameObject.name == "judge8")
@@ -292,26 +278,18 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge").transform;
-                bfront = 2;
-                bhorizon = 0;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge9").transform;
-                bfront = 1;
-                bhorizon = 0;
             }
             if (rand == 2)
             {
                 target = GameObject.Find("judge6").transform;
-                bfront = 0;
-                bhorizon = 1;
             }
             if (rand == 3)
             {
                 target = GameObject.Find("judge4").transform;
-                bfront = 0;
-                bhorizon = 2;
             }
         }
         if (other.gameObject.name == "judge9")
@@ -321,23 +299,16 @@ public class Koudai3D_Move : MonoBehaviour
             if (rand == 0)
             {
                 target = GameObject.Find("judge7").transform;
-                bfront = 0;
-                bhorizon = 1;
             }
             if (rand == 1)
             {
                 target = GameObject.Find("judge5").transform;
-                bfront = 0;
-                bhorizon = 2;
             }
             if (rand == 2)
             {
                 target = GameObject.Find("judge8").transform;
-                bfront = 2;
-                bhorizon = 0;
             }
         }
-
     }
 
     //トリガーと離れた瞬間

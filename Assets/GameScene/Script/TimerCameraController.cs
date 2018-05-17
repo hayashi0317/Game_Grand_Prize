@@ -26,15 +26,25 @@ public class TimerCameraController : MonoBehaviour
 
 	// 子オブジェクト
 	GameObject child_object_;
+	Camera child_camera_;
 
 	// UI
 	GameObject timer_count_ui_;
 
-	// メインカメラ
-	GameObject main_camera_;
-	bool is_shot_ = false;
+	// 写真の枚数
+	int num = 0;
+	int num_save;
 
-	
+	//衝突用
+    public GameObject koudai;
+    public Collider koudaiCollider;
+    private Plane[] planes;
+    private bool judg_planes = false;
+    private bool judg_koudai = false;
+    RaycastHit hit;
+    public LayerMask mask;
+
+    public RenderTexture RenderTextureRef;
 
 
 //**********************************************************************
@@ -63,12 +73,6 @@ public class TimerCameraController : MonoBehaviour
 
 	void Update()
 	{
-		if (is_shot_)
-		{
-			main_camera_.GetComponent<Player>().ChangeShotReverse();
-			is_shot_ = false;
-		}
-		
 		// タイマー更新
 		UpdateTimer();
 		
@@ -89,11 +93,15 @@ public class TimerCameraController : MonoBehaviour
 
 		child_object_ = transform.Find("TimerCameraObject").gameObject;
 
+		GameObject temp = transform.Find("SubCamera").gameObject;
+		child_camera_   = temp.GetComponent<Camera>();
+
 		timer_count_ui_ = transform.Find("TimerCameraObject/Canvas/ObjectTimerCount").gameObject;
-
-		main_camera_ = GameObject.Find("MainCamera");
-
+		
 		UpdataUI();
+
+		num_save = num;
+		num++;
 	}
 
 //================================================================================
@@ -143,18 +151,16 @@ public class TimerCameraController : MonoBehaviour
 	
 	void Shooting()
 	{
-		Debug.Log("撮影");
-		main_camera_.GetComponent<Player>().ChangeShot(transform.position, transform.rotation);
-		main_camera_.GetComponent<Player>().Judgment();
-
-		ScreenCapture.CaptureScreenshot("Assets/screenshot" + game_director_.GetComponent<GameDirector>().screenShotCount + ".png");
-        game_director_.GetComponent<GameDirector>().screenShotCount++;
-        if (game_director_.GetComponent<GameDirector>().screenShotCount >= 3)
+		//しすいだいのアタリ判定
+        judgment_planes();
+        if (judg_planes)//もしあったていたらrayとばして他のものと衝突していないか判定
         {
-			game_director_.GetComponent<GameDirector>().screenShotCount = 0;
+            //ray判定
+            ray_judgment();
         }
-
-		is_shot_ = true;
+        //rendertextureを一時的にtexture2Dにすると撮影
+        change_texture2D();
+        Debug.Log("撮影");
 	}
 
 
@@ -182,4 +188,70 @@ public class TimerCameraController : MonoBehaviour
 	{
 		timer_count_ui_.GetComponent<Text>().text = timer_count_.ToString("F1") + "s";
 	}
+
+//================================================================================
+//
+// [ しすい台判定関数 ]
+//
+//================================================================================
+
+	void judgment_planes()
+    {
+        //しすいだいアタリ判定
+        planes = GeometryUtility.CalculateFrustumPlanes(child_camera_);
+        koudai = GameObject.Find("koudai3D");
+        koudaiCollider = koudai.GetComponent<Collider>();
+
+        if (GeometryUtility.TestPlanesAABB(planes, koudaiCollider.bounds))
+        {
+            judg_planes = true;
+        }
+        else
+        {
+            judg_planes = false;
+        }
+    }
+
+//================================================================================
+//
+// [ ray判定関数 ]
+//
+//================================================================================
+
+	void ray_judgment()
+    { 
+            Ray ray = new Ray(child_camera_.transform.position, koudai.transform.position);
+            if (Physics.Raycast(ray, out hit, Vector3.Distance(child_camera_.transform.position, koudai.transform.position), mask))
+            {
+                //広大以外がrayにヒットした場合
+                if (hit.collider.tag == "koudai3D")
+                {
+                    judg_koudai = true;
+                }
+                else
+                {
+                    judg_koudai = false;
+                }
+            }
+    }
+
+//================================================================================
+//
+// [ Pngへの画像変換関数 ]
+//
+//================================================================================
+    void change_texture2D()
+    {
+        Texture2D tex = new Texture2D(RenderTextureRef.width, RenderTextureRef.height, TextureFormat.RGB24, false);
+        RenderTexture.active = RenderTextureRef;
+        tex.ReadPixels(new Rect(0, 0, RenderTextureRef.width, RenderTextureRef.height), 0, 0);
+        tex.Apply();
+
+        // Encode texture into PNG
+        byte[] bytes = tex.EncodeToPNG();
+        Object.Destroy(tex);
+
+        //Write to a file in the project folder
+        File.WriteAllBytes(Application.dataPath + "/SavedScreen" + this.num_save + ".png", bytes);
+    }
 }
