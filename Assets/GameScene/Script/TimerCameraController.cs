@@ -21,8 +21,8 @@ public class TimerCameraController : MonoBehaviour
 	float timer_count_ = 0.0f;
 	bool  is_count_down_ = false;
 
-	// ゲームディレクター
-	GameObject game_director_;
+	// UI
+	UIManager ui_manager_;
 
 	// 子オブジェクト
 	GameObject child_object_;
@@ -32,18 +32,23 @@ public class TimerCameraController : MonoBehaviour
 	GameObject timer_count_ui_;
 
 	// 写真の枚数
-	int num = 0;
-	int num_save;
+    GameObject timer_num;
+    int timer_num2;
 
-	//衝突用
+    Camera cam2;
+
+
+    GameObject obj;
+    RenderTexture rendertex;
+
+    //衝突用
     public GameObject koudai;
     public Collider koudaiCollider;
     private Plane[] planes;
     private bool judg_planes = false;
-    private bool judg_koudai = false;
+    public static bool judg_koudai = false;
     RaycastHit hit;
     public LayerMask mask;
-
     public RenderTexture RenderTextureRef;
 
 
@@ -89,7 +94,9 @@ public class TimerCameraController : MonoBehaviour
 	public void Init(float timer_count)
 	{
 		timer_count_ = timer_count;
-		game_director_ = GameObject.Find("GameDirector");
+
+		// UI
+		ui_manager_ = GameObject.Find("UI").GetComponent<UIManager>();
 
 		child_object_ = transform.Find("TimerCameraObject").gameObject;
 
@@ -100,8 +107,12 @@ public class TimerCameraController : MonoBehaviour
 		
 		UpdataUI();
 
-		num_save = num;
-		num++;
+		timer_num = GameObject.Find("Player");
+
+        //レンダ―テクスチャ生成
+        RenderTextureRef = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32);
+        RenderTextureRef.Create();
+        child_camera_.targetTexture = RenderTextureRef;
 	}
 
 //================================================================================
@@ -112,8 +123,8 @@ public class TimerCameraController : MonoBehaviour
 	
 	public void InitUI()
 	{
-		game_director_.GetComponent<GameDirector>().SetTimerCameraCount(timer_count_);
-		game_director_.GetComponent<GameDirector>().SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
+		ui_manager_.SetTimerCameraCount(timer_count_);
+		ui_manager_.SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
 	}
 
 
@@ -242,6 +253,15 @@ public class TimerCameraController : MonoBehaviour
 //================================================================================
     void change_texture2D()
     {
+
+
+        Player player = timer_num.GetComponent<Player>();
+        player.gettimer();
+        timer_num2 = player.timer_camera_count;
+        Debug.Log(timer_num2 + "撮影");
+
+     
+
         Texture2D tex = new Texture2D(RenderTextureRef.width, RenderTextureRef.height, TextureFormat.RGB24, false);
         RenderTexture.active = RenderTextureRef;
         tex.ReadPixels(new Rect(0, 0, RenderTextureRef.width, RenderTextureRef.height), 0, 0);
@@ -252,6 +272,13 @@ public class TimerCameraController : MonoBehaviour
         Object.Destroy(tex);
 
         //Write to a file in the project folder
-        File.WriteAllBytes(Application.dataPath + "/SavedScreen" + this.num_save + ".png", bytes);
+        File.WriteAllBytes(Application.dataPath + "/SavedScreen" + this.timer_num2 + ".png", bytes);
+
     }
+
+    public bool target_judgment()
+    {
+        return judg_koudai;
+    }
+
 }

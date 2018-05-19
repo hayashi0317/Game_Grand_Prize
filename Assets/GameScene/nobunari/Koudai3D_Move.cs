@@ -138,35 +138,14 @@ public class Koudai3D_Move : MonoBehaviour
     {
         if(bLockOn==false)
         { 
-            if (other.gameObject.name == "kanna")
+            if (other.gameObject.tag == "kanna")
             {
                 ball = other.gameObject;
                 bLockOn = true;
                 OldTatget = target;
-                target = GameObject.Find("kanna").transform;
+                target = other.gameObject.transform;
             }
-            if (other.gameObject.name == "kanna2")
-            {
-                ball = other.gameObject;
-                bLockOn = true;
-                OldTatget = target;
-                target = GameObject.Find("kanna2").transform;
-            }
-            if (other.gameObject.name == "kanna3")
-            {
-                ball = other.gameObject;
-                bLockOn = true;
-                OldTatget = target;
-                target = GameObject.Find("kanna3").transform;
-            }
-            if (other.gameObject.name == "kanna4")
-            {
-                ball = other.gameObject;
-                bLockOn = true;
-                OldTatget = target;
-                target = GameObject.Find("kanna4").transform;
-            }
-        }
+		}
         if (other.gameObject.name == "judge")
         {
             int rand;

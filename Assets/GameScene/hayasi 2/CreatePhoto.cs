@@ -11,7 +11,7 @@ public class CreatePhoto : MonoBehaviour {
 	void Start ()
     {
         Texture2D tex = new Texture2D(1,1);
-        tex.LoadImage(LoadBin(Application.dataPath + "/screenshot0.png"));
+        tex.LoadImage(LoadBin(Application.dataPath + "/SavedScreen1.png"));
         gameObject.GetComponent<Renderer>().material.mainTexture = tex;
         
     }

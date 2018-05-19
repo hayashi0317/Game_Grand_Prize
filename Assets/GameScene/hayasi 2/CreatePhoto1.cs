@@ -11,7 +11,7 @@ public class CreatePhoto1 : MonoBehaviour {
     void Start()
     {
         Texture2D tex = new Texture2D(1, 1);
-        tex.LoadImage(LoadBin(Application.dataPath + "/screenshot1.png"));
+        tex.LoadImage(LoadBin(Application.dataPath + "/SavedScreen2.png"));
         gameObject.GetComponent<Renderer>().material.mainTexture = tex;
     }
     // Update is called once per frame

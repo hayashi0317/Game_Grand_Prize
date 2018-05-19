@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class GameDirector : MonoBehaviour
@@ -15,10 +14,15 @@ public class GameDirector : MonoBehaviour
 	enum State
 	{
 		NONE = -1,
+		START,
 		COUNT_DOWN,
+		CHANGE_TIME,
 		COUNT_UP,
+		GAME_OVER,
 		MAX
 	}
+
+
 
 //**********************************************************************
 //
@@ -27,24 +31,13 @@ public class GameDirector : MonoBehaviour
 //**********************************************************************
 
 	// 定数
-	const float MAX_CAMERA_SET_TIME = 30.0f;
+	const float MAX_CAMERA_SET_TIME = 20.0f;
 
-	// 画像
-	public Sprite timer_camera_image_;
-	public Sprite lamp_image_;
-
-	// メインカメラ時のUI
-	GameObject item_ui_;
-	GameObject main_camera_canvas_;
-
-	// タイマーカメラ時UI
-	GameObject timer_camera_canvas_;
-	GameObject timer_gage_;
-	GameObject timer_count_;
+	// UI
+	UIManager ui_manager_;
 
 	// タイマー
 	float time_;
-	GameObject timer_text_;
 
 	// キューブ
 	GameObject cube_;
@@ -60,7 +53,10 @@ public class GameDirector : MonoBehaviour
     GameObject fade;
 
 	// ステート
-	State state_ = State.COUNT_DOWN;
+	State state_ = State.START;
+
+	// ゲームパッド
+	GamePad game_pad_;
 
 
 
@@ -78,20 +74,15 @@ public class GameDirector : MonoBehaviour
 
 	void Start()
 	{
-		// メインカメラUI
-		item_ui_			 = GameObject.Find("ItemBack/Item");
-		main_camera_canvas_  = GameObject.Find("MainCameraCanvas");
-
-		// タイマーカメラUI
-		timer_camera_canvas_ = GameObject.Find("TimerCameraCanvas");
-		timer_gage_			 = GameObject.Find("TimerGage");
-		timer_count_		 = GameObject.Find("TimerCount");
-
-		// タイマーカメラUIOFF
-		TimerCameraUIOFF();
-
-		// タイマー
-		timer_text_ = GameObject.Find("Time");
+		// UI
+		ui_manager_ = GameObject.Find("UI").GetComponent<UIManager>();
+		// タイマーカメラOFF
+		ui_manager_.TimerCameraUIOFF();
+		ui_manager_.StartStateCanvasON();
+		ui_manager_.MainCameraUIOFF();
+		ui_manager_.ChangeTimeCanvasOFF();
+		ui_manager_.GameOverCanvasOFF();
+		ui_manager_.FixdCanvasOFF();
 
 		// キューブ
 		cube_ = GameObject.Find("koudai3D");
@@ -102,6 +93,12 @@ public class GameDirector : MonoBehaviour
 
 		// タイマーの初期化
 		time_ = MAX_CAMERA_SET_TIME;
+
+		// ステート
+		state_ = State.START;
+
+		// ゲームパッドの取得
+		game_pad_ = GameObject.Find("GamePad").GetComponent<GamePad>();
 	}
 
 
@@ -116,24 +113,130 @@ public class GameDirector : MonoBehaviour
 	{
 		switch (state_)
 		{
+			case State.START :
+			{
+				StartStateUpdate();
+				break;
+			}
 			case State.COUNT_DOWN :
 			{
-				
+				CountDownStateUpdate();
+				break;
+			}
+			case State.CHANGE_TIME :
+			{
+				ChangeTimeStateUpdate();
 				break;
 			}
 			case State.COUNT_UP :
 			{
+				CountUpUpdate();
+				break;
+			}
+			case State.GAME_OVER :
+			{
+				GameOverUpdate();
 				break;
 			}
 		}
-		
+	}
+
+
+
+//================================================================================
+//
+// [ スタートステート更新関数 ]
+//
+//================================================================================
+	
+	void StartStateUpdate()
+	{
+		if (game_pad_.ButtonTrigger("START"))
+		{
+			state_ = State.COUNT_DOWN;
+
+			ui_manager_.MainCameraUION();
+			ui_manager_.FixdCanvasON();
+			ui_manager_.StartStateCanvasOFF();
+		}
+	}
+
+
+
+//================================================================================
+//
+// [ カウントダウンステート更新関数 ]
+//
+//================================================================================
+	
+	void CountDownStateUpdate()
+	{
 		// カウントダウン
-		CountDown();
+		if (!CountDown())
+		{
+			state_ = State.CHANGE_TIME;
+			ui_manager_.MainCameraUIOFF();
+			ui_manager_.FixdCanvasOFF();
+			ui_manager_.ChangeTimeCanvasON();
+		}
 
-		// カウントUI更新
-		UpdateCountUI();
+		ui_manager_.UpdateCountUI(time_);
+	}
 
-        scene_change();
+
+
+//================================================================================
+//
+// [ チェンジタイムステート更新関数 ]
+//
+//================================================================================
+	
+	void ChangeTimeStateUpdate()
+	{
+		if (game_pad_.ButtonTrigger("START"))
+		{
+			state_ = State.COUNT_UP;
+
+			ui_manager_.MainCameraUION();
+			ui_manager_.FixdCanvasON();
+			ui_manager_.ChangeTimeCanvasOFF();
+			
+			// スタート処理
+			MoveStart();
+		}
+	}
+
+
+	
+//================================================================================
+//
+// [ カウントアップ更新関数 ]
+//
+//================================================================================
+	
+	void CountUpUpdate()
+	{
+		if (cube_.GetComponent<Koudai3D_Move>().GetItem >= 2)
+		{
+			state_ = State.GAME_OVER;
+
+			ui_manager_.MainCameraUIOFF();
+			ui_manager_.FixdCanvasOFF();
+			ui_manager_.GameOverCanvasON();
+		}
+	}
+
+
+
+//================================================================================
+//
+// [ ゲーム終了更新関数 ]
+//
+//================================================================================
+	
+	void GameOverUpdate()
+	{
+		scene_change();
 	}
 
 
@@ -144,140 +247,21 @@ public class GameDirector : MonoBehaviour
 //
 //================================================================================
 	
-	void CountDown()
+	bool CountDown()
 	{
-		if (time_ <= 0.0f) return;
-
 		time_ -= Time.deltaTime;
 
 		if (time_ <= 0.0f)
 		{
 			time_ = 0.0f;
 			
-			// スタート処理
-			MoveStart();
+			return false;
 		}
+
+		return true;
 	}
 
-
-
-//================================================================================
-//
-// [ カウントUI更新関数 ]
-//
-//================================================================================
 	
-	void UpdateCountUI()
-	{
-		timer_text_.GetComponent<Text>().text = "Time: " + time_.ToString("F1") + "s";
-	}
-
-
-
-//================================================================================
-//
-// [ アイテムイメージ変更関数 ]
-//
-//================================================================================
-	
-	public void ChangeItemImage(ItemFactory.ItemNum select_item_num)
-	{
-		Image temp_image = item_ui_.GetComponent<Image>();
-
-		switch(select_item_num)
-		{
-			case ItemFactory.ItemNum.TIMER_CAMERA :
-			{
-				
-				temp_image.sprite = timer_camera_image_;
-				break;
-			}
-
-			case ItemFactory.ItemNum.LAMP :
-			{
-				temp_image.sprite = lamp_image_;
-				break;
-			}
-		}
-	}
-
-
-
-//================================================================================
-//
-// [ メインカメラUIOFF関数 ]
-//
-//================================================================================
-	
-	public void MainCameraUIOFF()
-	{
-		main_camera_canvas_.SetActive(false);
-	}
-
-
-
-//================================================================================
-//
-// [ メインカメラUION関数 ]
-//
-//================================================================================
-	
-	public void MainCameraUION()
-	{
-		main_camera_canvas_.SetActive(true);
-	}
-
-
-
-//================================================================================
-//
-// [ タイマーカメラUIOFF関数 ]
-//
-//================================================================================
-	
-	public void TimerCameraUIOFF()
-	{
-		timer_camera_canvas_.SetActive(false);
-	}
-
-
-
-//================================================================================
-//
-// [ タイマーカメラUION関数 ]
-//
-//================================================================================
-	
-	public void TimerCameraUION()
-	{
-		timer_camera_canvas_.SetActive(true);
-	}
-
-
-
-//================================================================================
-//
-// [ タイマーカメラゲージ設定関数 ]
-//
-//================================================================================
-	
-	public void SetTimerCameraGage(float gage_ratio)
-	{
-		timer_gage_.GetComponent<Image>().fillAmount = gage_ratio;
-	}
-
-
-
-//================================================================================
-//
-// [ タイマーカメラカウント設定関数 ]
-//
-//================================================================================
-	
-	public void SetTimerCameraCount(float timer_count)
-	{
-		timer_count_.GetComponent<Text>().text = "Count: " + timer_count.ToString("F1") + "s";
-	}
 
 //================================================================================
 //
@@ -299,13 +283,19 @@ public class GameDirector : MonoBehaviour
 		}
 	}
 
+//================================================================================
+//
+// [ リザルトヘ遷移関数 ]
+//
+//================================================================================
+
     void scene_change()
     {
         //time_scene++;
         
         FadeManager fade_start = fade.GetComponent<FadeManager>();
 
-		if (Input.GetButtonDown("Y"))
+		if (game_pad_.ButtonTrigger("START"))
 		{
 			time_scene = 5000;
 		}

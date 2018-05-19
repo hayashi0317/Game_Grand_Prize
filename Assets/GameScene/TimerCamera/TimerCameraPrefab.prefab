@@ -199,7 +199,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 7b10f0dfac31e834580a90371e7728c9, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -371,7 +371,7 @@ MonoBehaviour:
   mask:
     serializedVersion: 2
     m_Bits: 0
-  RenderTextureRef: {fileID: 8400000, guid: 7b10f0dfac31e834580a90371e7728c9, type: 2}
+  RenderTextureRef: {fileID: 0}
 --- !u!114 &114455512886078500
 MonoBehaviour:
   m_ObjectHideFlags: 1

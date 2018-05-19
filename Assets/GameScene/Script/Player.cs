@@ -44,8 +44,8 @@ public class Player : MonoBehaviour
 	// アイテムマネージャ
 	ItemManager item_manager_;
 
-	// ゲームディレクター
-	GameDirector game_director_;
+	// UI
+	UIManager ui_manager_;
 	
 	// アイテム用形状保存
 	Vector3    item_position_;
@@ -60,6 +60,9 @@ public class Player : MonoBehaviour
 
 	// ステート
 	State state_ = State.MAIN_CAMERA_MOVE;
+
+	//カメラ撮影回数カウント
+    public int timer_camera_count = 0;
 
 
 	// 衝突用
@@ -94,8 +97,8 @@ public class Player : MonoBehaviour
 		// アイテムマネージャの取得
 		item_manager_ = GameObject.Find("ItemManager").GetComponent<ItemManager>();
 		
-		// ゲームディレクターの取得
-		game_director_ = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+		// UI
+		ui_manager_ = GameObject.Find("UI").GetComponent<UIManager>();
 
 		// タイマーカウンターの初期化
 		timer_count_ = 0.0f;
@@ -345,7 +348,7 @@ public class Player : MonoBehaviour
 
 		// アイテムイメージUI変更
 		ItemFactory.ItemNum temp_num = item_manager_.GetItemNum();
-		game_director_.GetComponent<GameDirector>().ChangeItemImage(temp_num);
+		ui_manager_.ChangeItemImage(temp_num);
 	}
 
 
@@ -400,8 +403,8 @@ public class Player : MonoBehaviour
 				timer_count_ = MAX_TIMER_COUNT;
 			}
 		
-			game_director_.GetComponent<GameDirector>().SetTimerCameraCount(timer_count_);
-			game_director_.GetComponent<GameDirector>().SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
+			ui_manager_.SetTimerCameraCount(timer_count_);
+			ui_manager_.SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
 		}
 
 		if (game_pad_.LstickHold(GamePad.StickFlag.LEFT))
@@ -415,8 +418,8 @@ public class Player : MonoBehaviour
 				timer_count_ = 0.0f;
 			}
 
-			game_director_.GetComponent<GameDirector>().SetTimerCameraCount(timer_count_);
-			game_director_.GetComponent<GameDirector>().SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
+			ui_manager_.SetTimerCameraCount(timer_count_);
+			ui_manager_.SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
 		}
 	}
 
@@ -470,8 +473,8 @@ public class Player : MonoBehaviour
 		LoadTransform();
 
 		// UIの変更
-		game_director_.GetComponent<GameDirector>().MainCameraUION();
-		game_director_.GetComponent<GameDirector>().TimerCameraUIOFF();
+		ui_manager_.MainCameraUION();
+		ui_manager_.TimerCameraUIOFF();
 		
 	}
 
@@ -520,10 +523,10 @@ public class Player : MonoBehaviour
 		timer_count_ = 0.0f;
 
 		// UIの変更
-		game_director_.GetComponent<GameDirector>().MainCameraUIOFF();
-		game_director_.GetComponent<GameDirector>().TimerCameraUION();
-		game_director_.GetComponent<GameDirector>().SetTimerCameraCount(timer_count_);
-		game_director_.GetComponent<GameDirector>().SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
+		ui_manager_.MainCameraUIOFF();
+		ui_manager_.TimerCameraUION();
+		ui_manager_.SetTimerCameraCount(timer_count_);
+		ui_manager_.SetTimerCameraGage(timer_count_ / MAX_TIMER_COUNT);
 
 	}
 
@@ -548,7 +551,7 @@ public class Player : MonoBehaviour
 		transform.rotation = rotation;
 
 		// UIの変更
-		game_director_.GetComponent<GameDirector>().MainCameraUIOFF();
+		ui_manager_.MainCameraUIOFF();
 	}
 
 
@@ -568,8 +571,8 @@ public class Player : MonoBehaviour
 		LoadTransform();
 
 		// UIの変更
-		game_director_.GetComponent<GameDirector>().MainCameraUION();
-		game_director_.GetComponent<GameDirector>().TimerCameraUIOFF();
+		ui_manager_.MainCameraUION();
+		ui_manager_.TimerCameraUIOFF();
 	}
 
 
@@ -637,6 +640,17 @@ public class Player : MonoBehaviour
 	public bool Is_Judg2()
     {
         return judg2;  
+    }
+
+//================================================================================
+//
+// [ 撮影枚数管理関数 ]
+//
+//================================================================================
+
+	public void gettimer()
+    {
+        timer_camera_count++;
     }
 
 }
